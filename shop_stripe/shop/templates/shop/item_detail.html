@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Buy {{ item.name }}</title>
+  </head>
+  <body>
+    <h1>{{ item.name }}</h1>
+    <p>{{ item.description }}</p>
+    <p><strong>Price:</strong> {{ item.price }} {{ item.currency|upper }}</p>
+
+    <button id="buy-button">Buy</button>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script type="text/javascript">
+      // publishable key injected from server
+      const stripe = Stripe('{{ stripe_publishable_key }}');
+
+      document.getElementById('buy-button').addEventListener('click', function () {
+        fetch('/buy/{{ item.id }}/', {method: 'GET'})
+          .then((r) => {
+            if (!r.ok) throw new Error('Network response was not ok');
+            return r.json();
+          })
+          .then((data) => {
+            return stripe.redirectToCheckout({ sessionId: data.id });
+          })
+          .then((res) => {
+            if (res && res.error) {
+              alert(res.error.message);
+            }
+          })
+          .catch((err) => {
+            console.error(err);
+            alert('Ошибка: ' + err.message);
+          });
+      });
+    </script>
+  </body>
+</html>
